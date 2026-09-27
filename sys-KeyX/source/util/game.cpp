@@ -35,11 +35,8 @@ u64 GameMonitor::GetCurrentGameTitleId() {
         return 0;
     }
     
-    // 3. 过滤非游戏ID
-    u8 type = (u8)(tid >> 56);
-    if (type == 0x01) return tid;           // 游戏直接通过
-    if (s_whitelist.count(tid)) return tid; // 白名单通过
-    return 0;
+    // 3. 不再过滤类型，任意前台应用（游戏、模拟器、其他homebrew app等）均可通过
+    return tid;
 }
 
 // 检查游戏状态（返回事件+TID）
