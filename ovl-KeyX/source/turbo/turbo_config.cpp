@@ -16,9 +16,9 @@ namespace {
         tsl::Color color;
     };
     constexpr SpeedConfig SPEED_CONFIGS[] = {
-        {"极速", 25, 25, {0xF, 0x5, 0x5, 0xF}},       // 红色
-        {"高速", 50, 50, {0x00, 0xDD, 0xFF, 0xFF}}, // 蓝色
-        {"普通", 100, 50, {0x00, 0xFF, 0xDD, 0xFF}},  // 标准颜色(00FFDD)
+        {"极速", 40, 40, {0xF, 0x5, 0x5, 0xF}},       // 红色
+        {"高速", 70, 70, {0x00, 0xDD, 0xFF, 0xFF}}, // 蓝色
+        {"普通", 120, 80, {0x00, 0xFF, 0xDD, 0xFF}},  // 标准颜色(00FFDD)
     };
 
     // 连发开关键可选项:按A依次循环切换
