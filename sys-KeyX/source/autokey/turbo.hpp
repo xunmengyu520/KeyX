@@ -33,6 +33,11 @@ private:
     u64 m_TurboStartTime;       // 连发开始时间
     u64 m_InitialPressTime;     // 首次按下时间（用于200ms延迟）
     bool m_DelayStart;          // 是否启用延迟启动
+
+    // 连发总开关(切换键):按一下开启连发,再按一下关闭
+    u64  m_ToggleMask = 0;          // 切换键掩码,0=未设置(连发始终可用,与原版一致)
+    bool m_ToggleOn = false;        // 当前连发总开关状态(设置了切换键后,默认关闭)
+    bool m_ToggleWasDown = false;   // 上一次循环切换键是否按下(用于检测"刚按下"的瞬间)
     
     // 事件判定
     FeatureEvent DetermineEvent(u64 autokey_buttons);
