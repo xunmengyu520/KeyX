@@ -44,6 +44,14 @@ void Turbo::LoadConfig(const char* config_path) {
     m_ReleaseDurationNs = (u64)release_ms * 1000000ULL;
     // 读取防止误触开关
     m_DelayStart = ini_getbool("AUTOFIRE", "delaystart", 1, config_path);
+        // 读取连发开关键(0=未设置)。仅在切换键变化时才重置开关状态,
+    // 这样在overlay里改速度等设置触发重载时,不会把开关状态弄丢
+    u64 toggle_mask = (u64)ini_getl("AUTOFIRE", "togglebutton", 0, config_path);
+    if (toggle_mask != m_ToggleMask) {
+        m_ToggleMask = toggle_mask;
+        m_ToggleOn = false;         // 更换切换键后默认关闭,按一下才开启
+        m_ToggleWasDown = false;
+    }
     m_isJCRightHand = ini_getbool("AUTOFIRE", "IsJCRightHand", 1, "/config/KeyX/config.ini");
 
 }
@@ -58,8 +66,28 @@ void Turbo::Process(ProcessResult& result, bool isJoyCon) {
     u64 jcWhitelistMask = m_ButtonMask;
     if (isJoyCon) jcWhitelistMask &= m_isJCRightHand ? RIGHT_JOYCON_BUTTONS : LEFT_JOYCON_BUTTONS;
 
+    // 连发开关键:检测"刚按下"的瞬间,每按一次切换一次开/关
+    if (m_ToggleMask != 0) {
+        jcWhitelistMask &= ~m_ToggleMask;   // 切换键本身不参与连发
+        bool toggleDown = (result.buttons & m_ToggleMask) == m_ToggleMask;
+        if (toggleDown && !m_ToggleWasDown) {
+            m_ToggleOn = !m_ToggleOn;
+            if (!m_ToggleOn && m_IsActive) {
+                // 正在连发时被关闭:立即结束连发,并把真实按键还给游戏
+                m_ToggleWasDown = toggleDown;
+                TurboFinishing();
+                result.event = FeatureEvent::FINISHING;
+                result.OtherButtons = result.buttons;
+                return;
+            }
+        }
+        m_ToggleWasDown = toggleDown;
+    }
+
     // 分类按键
     u64 autokey_buttons = result.buttons & jcWhitelistMask;
+    // 设置了切换键且当前为"关闭"状态时,不触发连发
+    if (m_ToggleMask != 0 && !m_ToggleOn) autokey_buttons = 0;
     u64 normal_buttons = result.buttons & ~jcWhitelistMask;
     result.event = DetermineEvent(autokey_buttons);
     switch (result.event) {
