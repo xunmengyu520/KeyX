@@ -12,6 +12,7 @@ private:
     char m_gameName[64];  // 当前游戏名称
     char m_ConfigPath[64];  // 配置文件路径
     int m_TurboSpeed;   // 连发速度档位（0=极速, 1=高速, 2=普通）
+    int m_ToggleIdx;    // 连发开关键在 TOGGLE_KEYS 表中的序号(0=关闭该功能)
     bool m_DelayStart;  // 是否延迟启动
 };
 
