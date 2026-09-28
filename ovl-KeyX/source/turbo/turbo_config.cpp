@@ -39,8 +39,6 @@ namespace {
     };
     constexpr int TOGGLE_KEY_COUNT = sizeof(TOGGLE_KEYS) / sizeof(TOGGLE_KEYS[0]);
 }
-    };
-}
 
 SettingTurboConfig::SettingTurboConfig(bool isGlobal, u64 currentTitleId)  
     : m_isGlobal(isGlobal)
