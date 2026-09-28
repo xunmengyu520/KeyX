@@ -56,8 +56,8 @@ SettingTurboConfig::SettingTurboConfig(bool isGlobal, u64 currentTitleId)
 
     // 读取速度配置（0=极速, 1=高速, 2=普通）
     int press = IniHelper::getInt("AUTOFIRE", "presstime", 50, m_ConfigPath);
-    if (press == 50) m_TurboSpeed = 0;
-    else if (press == 100) m_TurboSpeed = 1;
+    if (press == 40) m_TurboSpeed = 0;
+    else if (press == 70) m_TurboSpeed = 1;
     else m_TurboSpeed = 2;
         // 读取连发开关键配置(0=未设置)
     u64 toggleMask = static_cast<u64>(IniHelper::getInt("AUTOFIRE", "togglebutton", 0, m_ConfigPath));
