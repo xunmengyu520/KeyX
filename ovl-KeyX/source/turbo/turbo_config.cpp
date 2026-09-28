@@ -20,6 +20,26 @@ namespace {
         {"高速", 50, 50, {0x00, 0xDD, 0xFF, 0xFF}}, // 蓝色
         {"普通", 100, 50, {0x00, 0xFF, 0xDD, 0xFF}},  // 标准颜色(00FFDD)
     };
+
+    // 连发开关键可选项:按A依次循环切换
+    struct ToggleKeyOption {
+        const char* name;
+        u64 mask;
+    };
+    constexpr ToggleKeyOption TOGGLE_KEYS[] = {
+        {"关闭", 0},
+        {"ZL", BTN_ZL},
+        {"ZR", BTN_ZR},
+        {"L", BTN_L},
+        {"R", BTN_R},
+        {"左摇杆按下", BTN_STICKL},
+        {"右摇杆按下", BTN_STICKR},
+        {"-键", BTN_SELECT},
+        {"+键", BTN_START},
+    };
+    constexpr int TOGGLE_KEY_COUNT = sizeof(TOGGLE_KEYS) / sizeof(TOGGLE_KEYS[0]);
+}
+    };
 }
 
 SettingTurboConfig::SettingTurboConfig(bool isGlobal, u64 currentTitleId)  
@@ -41,6 +61,12 @@ SettingTurboConfig::SettingTurboConfig(bool isGlobal, u64 currentTitleId)
     if (press == 50) m_TurboSpeed = 0;
     else if (press == 100) m_TurboSpeed = 1;
     else m_TurboSpeed = 2;
+        // 读取连发开关键配置(0=未设置)
+    u64 toggleMask = static_cast<u64>(IniHelper::getInt("AUTOFIRE", "togglebutton", 0, m_ConfigPath));
+    m_ToggleIdx = 0;
+    for (int i = 0; i < TOGGLE_KEY_COUNT; i++) {
+        if (TOGGLE_KEYS[i].mask == toggleMask) { m_ToggleIdx = i; break; }
+    }
     // 读取防止误触配置（0=关闭，1=开启）
     m_DelayStart = IniHelper::getInt("AUTOFIRE", "delaystart", 1, m_ConfigPath);
     // 读取连发按键配置（默认值：0 = 未设置连发）
@@ -85,6 +111,20 @@ tsl::elm::Element* SettingTurboConfig::createUI() {
         return false;
     });
     list->addItem(listItemTurboSpeed);
+
+    // 连发开关键:设置后,按一下该键开启连发,再按一下关闭连发
+    auto listItemToggleKey = new tsl::elm::ListItem("连发开关键", TOGGLE_KEYS[m_ToggleIdx].name);
+    listItemToggleKey->setClickListener([listItemToggleKey, this](u64 keys) {
+        if (keys & HidNpadButton_A) {
+            m_ToggleIdx = (m_ToggleIdx + 1) % TOGGLE_KEY_COUNT;
+            IniHelper::setInt("AUTOFIRE", "togglebutton", static_cast<int>(TOGGLE_KEYS[m_ToggleIdx].mask), m_ConfigPath);
+            g_ipcManager.sendReloadAutoFireCommand();
+            listItemToggleKey->setValue(TOGGLE_KEYS[m_ToggleIdx].name);
+            return true;
+        }
+        return false;
+    });
+    list->addItem(listItemToggleKey);
 
     list->addItem(new tsl::elm::CategoryHeader(" 延迟启动连发功能避免误触"));
 
